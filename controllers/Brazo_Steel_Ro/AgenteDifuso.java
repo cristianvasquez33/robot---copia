@@ -7,9 +7,12 @@ public class AgenteDifuso {
     private ControladorDifusoPD controladorHorizontal;
     private ControladorDifusoPD controladorProfundidad;
     private VentanaReglas ventana;
+    private boolean inicializado = false; // Para inicializar posiciones solo una vez
 
     public AgenteDifuso() {
-        pA = new double[7];
+        // Inicializar con las posiciones iniciales que Webots carga por defecto
+        // Estas son las posiciones del archivo Brazo_Steel_Ro.java líneas 69-75
+        pA = new double[]{0.07, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
         dx = new Diagnostico(114); // horizontal - centro de imagen en X
         ds = new Diagnostico(80);  // profundidad - tamaño objetivo del objeto
@@ -32,14 +35,13 @@ public class AgenteDifuso {
     }
 
     public void Razonamiento(CameraRecognitionObject[] objData) {
-        // Posición inicial del brazo (configuración optimizada para alcance frontal)
-        pA[0] = 0.07;  // Hombro horizontal - centrado
-        pA[1] = 0.20;  // Hombro vertical - posición media para alcance
-        pA[2] = -0.50; // Brazo superior - semi-extendido
-        pA[3] = 0.80;  // Codo - semi-flexionado
-        pA[4] = 1.50;  // Brazo inferior - preparado
-        pA[5] = -1.3;  // Muñeca
-        pA[6] = -1.1;  // Efector
+        // Inicializar posiciones solo la primera vez (usa posición actual de Webots)
+        if (!inicializado) {
+            // En el primer ciclo, pA[] mantiene los valores que tiene el robot
+            // No hacemos nada, dejamos que se usen las posiciones iniciales
+            inicializado = true;
+            System.out.println("✓ Controlador difuso inicializado desde posición actual del robot");
+        }
 
         if (objData.length > 0) {
             // Obtener posición horizontal (ancho) y tamaño del objeto
