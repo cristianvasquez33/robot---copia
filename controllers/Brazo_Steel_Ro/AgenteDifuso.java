@@ -32,9 +32,14 @@ public class AgenteDifuso {
     }
 
     public void Razonamiento(CameraRecognitionObject[] objData) {
-        // Posición inicial del brazo (configuración de acercamiento)
-        pA[0] = 0.07; pA[1] = 0.6; pA[2] = -1.65;
-        pA[3] = 1.17; pA[4] = 1.5; pA[5] = -1.3; pA[6] = -1.1;
+        // Posición inicial del brazo (configuración optimizada para alcance frontal)
+        pA[0] = 0.07;  // Hombro horizontal - centrado
+        pA[1] = 0.20;  // Hombro vertical - posición media para alcance
+        pA[2] = -0.50; // Brazo superior - semi-extendido
+        pA[3] = 0.80;  // Codo - semi-flexionado
+        pA[4] = 1.50;  // Brazo inferior - preparado
+        pA[5] = -1.3;  // Muñeca
+        pA[6] = -1.1;  // Efector
 
         if (objData.length > 0) {
             // Obtener posición horizontal (ancho) y tamaño del objeto
@@ -53,8 +58,15 @@ public class AgenteDifuso {
 
             ventana.limpiar();
 
-            // Inferencia difusa
+            // Inferencia difusa con identificación de controlador
+            ventana.mostrarRegla("╔═══════════════════════════════════╗");
+            ventana.mostrarRegla("║   CONTROLADOR HORIZONTAL          ║");
+            ventana.mostrarRegla("╚═══════════════════════════════════╝");
             double yHor  = controladorHorizontal.inferir(errorH, derivadaH);
+
+            ventana.mostrarRegla("\n╔═══════════════════════════════════╗");
+            ventana.mostrarRegla("║   CONTROLADOR PROFUNDIDAD         ║");
+            ventana.mostrarRegla("╚═══════════════════════════════════╝");
             double yProf = controladorProfundidad.inferir(errorP, derivadaP);
 
             // Zona muerta ampliada para evitar oscilaciones
@@ -72,12 +84,12 @@ public class AgenteDifuso {
             }
 
             // Aplicación de correcciones optimizadas
-            // ESTRATEGIA: Extensión completa del brazo hacia adelante
-            pA[0] += 0.045 * yHor;   // Hombro horizontal (giro izq/der)
-            pA[1] += 0.080 * yProf;  // Hombro vertical (INVERTIDO: elevar para alcanzar)
-            pA[2] += 0.100 * yProf;  // Brazo superior (INVERTIDO: extender)
-            pA[3] -= 0.100 * yProf;  // Codo (INVERTIDO: flexionar para alcance)
-            pA[4] -= 0.080 * yProf;  // Brazo inferior (INVERTIDO: extender hacia adelante)
+            // ESTRATEGIA SIMPLIFICADA: Alcance frontal coordinado
+            pA[0] += 0.050 * yHor;   // Hombro horizontal (giro izq/der para centrar)
+            pA[1] -= 0.100 * yProf;  // Hombro vertical (bajar para acercar)
+            pA[2] -= 0.120 * yProf;  // Brazo superior (extender hacia adelante)
+            pA[3] += 0.120 * yProf;  // Codo (extender brazo)
+            pA[4] += 0.080 * yProf;  // Brazo inferior (ajuste fino)
 
             limitarRangos();
         } else {

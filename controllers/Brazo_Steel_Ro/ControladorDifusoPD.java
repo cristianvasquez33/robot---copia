@@ -42,18 +42,30 @@ public class ControladorDifusoPD {
         double[] pertenenciaError = new double[5];
         double[] pertenenciaDerivada = new double[5];
         double[] salida = new double[5];
+
+        String[] etiquetasEntrada = {"NM", "NP", "Z", "PP", "PM"};
+
         // Calcula grados de pertenencia
         for (int i = 0; i < 5; i++) {
             pertenenciaError[i] = conjuntosError[i].pertenencia(error);
             pertenenciaDerivada[i] = conjuntosDerivada[i].pertenencia(derivada);
         }
-        // Aplica reglas FAM
+
+        // Aplica reglas FAM y muestra en ventana
         for (int i = 0; i < 5; i++) {
             for (int j = 0; j < 5; j++) {
                 double activacion = Math.min(pertenenciaError[i], pertenenciaDerivada[j]);
-                if (activacion > 0) {
+                if (activacion > 0.01) { // Solo mostrar reglas con activación significativa
                     String etiqueta = fam[i][j];
-                    // ventana.activar(etiqueta); // Comentado: método no existe en VentanaReglas
+
+                    // Mostrar regla activada en ventana
+                    String regla = String.format("E:%s ∧ D:%s → %s  [%.3f]",
+                                                etiquetasEntrada[i],
+                                                etiquetasEntrada[j],
+                                                etiqueta,
+                                                activacion);
+                    ventana.mostrarRegla(regla);
+
                     int indice = switch (etiqueta) {
                         case "NB" -> 0;
                         case "NS" -> 1;
@@ -65,6 +77,7 @@ public class ControladorDifusoPD {
                 }
             }
         }
+
         // Defuzzificación por centroide
         double[] centros = {-2.0, -1.0, 0.0, 1.0, 2.0}; // NB, NS, Z, PS, PB
         double numerador = 0, denominador = 0;
@@ -73,6 +86,12 @@ public class ControladorDifusoPD {
             denominador += salida[i];
         }
         double salidaFinal = (denominador == 0) ? 0 : numerador / denominador;
+
+        // Mostrar resultado de defuzzificación
+        ventana.mostrarRegla(String.format("─────────────────────────────"));
+        ventana.mostrarRegla(String.format("Defuzzificación: %.3f", salidaFinal));
+        ventana.mostrarRegla(String.format("═════════════════════════════\n"));
+
         return Math.max(-2.0, Math.min(2.0, salidaFinal)); // límite suave
     }
 }
