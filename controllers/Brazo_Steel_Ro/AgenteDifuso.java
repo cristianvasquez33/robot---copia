@@ -72,11 +72,12 @@ public class AgenteDifuso {
             }
 
             // Aplicación de correcciones optimizadas
+            // ESTRATEGIA: Extensión completa del brazo hacia adelante
             pA[0] += 0.045 * yHor;   // Hombro horizontal (giro izq/der)
-            pA[1] -= 0.080 * yProf;  // Hombro vertical (acercamiento)
-            pA[2] -= 0.100 * yProf;  // Brazo superior (acercamiento)
-            pA[3] += 0.100 * yProf;  // Codo (extensión)
-            pA[4] += 0.060 * yProf;  // Brazo inferior (extensión adicional)
+            pA[1] += 0.080 * yProf;  // Hombro vertical (INVERTIDO: elevar para alcanzar)
+            pA[2] += 0.100 * yProf;  // Brazo superior (INVERTIDO: extender)
+            pA[3] -= 0.100 * yProf;  // Codo (INVERTIDO: flexionar para alcance)
+            pA[4] -= 0.080 * yProf;  // Brazo inferior (INVERTIDO: extender hacia adelante)
 
             limitarRangos();
         } else {
