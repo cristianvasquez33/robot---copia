@@ -10,21 +10,21 @@ public class ControladorDifusoPD {
         this.fam = fam;
         this.escala = escala;
         this.ventana = ventana;
-        // Funciones de membresía para error
+        // Funciones de membresía para error (optimizadas - simétricas)
         conjuntosError = new trapesoidal[] {
-            new trapesoidal(-3.2, -2.8, -2.0, -1.4), // NM
-            new trapesoidal(-2.5, -1.8, -1.0, -0.3), // NP
-            new trapesoidal(-1.2, -0.4,  0.4,  1.2), // Z
-            new trapesoidal( 0.3,  1.0,  1.8,  2.5), // PP
-            new trapesoidal( 1.4,  2.0,  2.8,  3.2)  // PM
+            new trapesoidal(-4.0, -3.0, -2.2, -1.5), // NM - rango ampliado
+            new trapesoidal(-2.5, -1.8, -1.0, -0.4), // NP
+            new trapesoidal(-1.0, -0.3,  0.3,  1.0), // Z - zona estrecha para precisión
+            new trapesoidal( 0.4,  1.0,  1.8,  2.5), // PP
+            new trapesoidal( 1.5,  2.2,  3.0,  4.0)  // PM - rango ampliado
         };
-        // Funciones de membresía para derivada
+        // Funciones de membresía para derivada (optimizadas - simétricas)
         conjuntosDerivada = new trapesoidal[] {
-            new trapesoidal(-2.5, -2.0, -1.5, -1.0), // NM
-            new trapesoidal(-1.2, -0.8, -0.3,  0.0), // NP
-            new trapesoidal(-0.4, -0.1,  0.1,  0.4), // Z
-            new trapesoidal( 0.0,  0.3,  0.8,  1.2), // PP
-            new trapesoidal( 1.0,  1.5,  2.0,  2.5)  // PM
+            new trapesoidal(-3.0, -2.2, -1.6, -1.0), // NM - alejándose rápido
+            new trapesoidal(-1.5, -1.0, -0.4,  0.0), // NP - alejándose lento
+            new trapesoidal(-0.5, -0.15, 0.15, 0.5), // Z - sin cambio
+            new trapesoidal( 0.0,  0.4,  1.0,  1.5), // PP - acercándose lento
+            new trapesoidal( 1.0,  1.6,  2.2,  3.0)  // PM - acercándose rápido
         };
         // Funciones de membresía para salida
         conjuntosSalida = new trapesoidal[] {

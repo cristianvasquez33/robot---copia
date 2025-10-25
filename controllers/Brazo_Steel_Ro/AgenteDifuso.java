@@ -3,83 +3,78 @@ import com.cyberbotics.webots.controller.CameraRecognitionObject;
 public class AgenteDifuso {
 
     private double[] pA;
-    private Diagnostico dx, dy, ds;
+    private Diagnostico dx, ds; // Solo horizontal y profundidad
     private ControladorDifusoPD controladorHorizontal;
     private ControladorDifusoPD controladorProfundidad;
-    private ControladorDifusoPD controladorVertical;
     private VentanaReglas ventana;
 
     public AgenteDifuso() {
         pA = new double[7];
 
-        dx = new Diagnostico(114); // horizontal
-        dy = new Diagnostico(55);  // vertical
-        ds = new Diagnostico(80);  // profundidad
+        dx = new Diagnostico(114); // horizontal - centro de imagen en X
+        ds = new Diagnostico(80);  // profundidad - tamaño objetivo del objeto
 
         ventana = new VentanaReglas();
 
-        // Matriz FAM con respuesta gradual
+        // Matriz FAM optimizada para acercamiento rápido y estable
+        // Error\Derivada: NM    NP    Z     PP    PM
         String[][] fam = {
-            {"NS", "NS", "Z",  "PS", "PS"},
-            {"NS", "Z",  "Z",  "PS", "PM"},
-            {"Z",  "Z",  "Z",  "PS", "PM"},
-            {"Z",  "Z",  "PS", "PM", "PM"},
-            {"PS", "PS", "PM", "PM", "PB"}
+            {"NB", "NS", "NS", "Z",  "PS"}, // NM: lejos negativo
+            {"NS", "NS", "Z",  "PS", "PS"}, // NP: cerca negativo
+            {"NS", "Z",  "Z",  "Z",  "PS"}, // Z:  centrado
+            {"PS", "PS", "Z",  "PS", "PS"}, // PP: cerca positivo
+            {"PS", "Z",  "PS", "PS", "PB"}  // PM: lejos positivo
         };
 
-        controladorHorizontal = new ControladorDifusoPD(fam, 0.035, ventana);
-        controladorProfundidad = new ControladorDifusoPD(fam, 0.035, ventana);
-        controladorVertical   = new ControladorDifusoPD(fam, 0.0233, ventana);
+        // Factores de escala optimizados (más sensibles)
+        controladorHorizontal = new ControladorDifusoPD(fam, 0.040, ventana);
+        controladorProfundidad = new ControladorDifusoPD(fam, 0.040, ventana);
     }
 
     public void Razonamiento(CameraRecognitionObject[] objData) {
-        // Posición inicial del brazo
+        // Posición inicial del brazo (configuración de acercamiento)
         pA[0] = 0.07; pA[1] = 0.6; pA[2] = -1.65;
         pA[3] = 1.17; pA[4] = 1.5; pA[5] = -1.3; pA[6] = -1.1;
 
         if (objData.length > 0) {
-            double ancho = objData[0].getSize_on_image()[0];
-            double alto  = objData[0].getSize_on_image()[1];
-            double size  = objData[0].getSize_on_image()[0];
+            // Obtener posición horizontal (ancho) y tamaño del objeto
+            double posicionX = objData[0].getPosition_on_image()[0]; // Posición X en imagen
+            double tamano = objData[0].getSize_on_image()[0]; // Ancho del objeto
 
-            dx.actualizar(ancho);
-            dy.actualizar(alto);
-            ds.actualizar(size);
+            // Actualizar diagnósticos
+            dx.actualizar(posicionX);
+            ds.actualizar(tamano);
 
-            double x1 = controladorHorizontal.escalar(dx.errorPresente);
-            double x2 = controladorHorizontal.escalar(dx.derivada);
-            double eS = controladorProfundidad.escalar(ds.errorPresente);
-            double dS = controladorProfundidad.escalar(ds.derivada);
-            double eY = controladorVertical.escalar(dy.errorPresente);
-            double dY = controladorVertical.escalar(dy.derivada);
+            // Escalar entradas para el controlador difuso
+            double errorH = controladorHorizontal.escalar(dx.errorPresente);
+            double derivadaH = controladorHorizontal.escalar(dx.derivada);
+            double errorP = controladorProfundidad.escalar(ds.errorPresente);
+            double derivadaP = controladorProfundidad.escalar(ds.derivada);
 
             ventana.limpiar();
 
-            double yHor  = controladorHorizontal.inferir(x1, x2);
-            double yProf = controladorProfundidad.inferir(eS, dS);
-            double yVert = controladorVertical.inferir(eY, dY);
+            // Inferencia difusa
+            double yHor  = controladorHorizontal.inferir(errorH, derivadaH);
+            double yProf = controladorProfundidad.inferir(errorP, derivadaP);
 
-            // Zona muerta cerca del objetivo
-            if (Math.abs(dx.errorPresente) < 3 && Math.abs(dx.derivada) < 1) yHor = 0;
-            if (Math.abs(ds.errorPresente) < 3 && Math.abs(ds.derivada) < 1) yProf = 0;
-            if (Math.abs(dy.errorPresente) < 3 && Math.abs(dy.derivada) < 1) yVert = 0;
+            // Zona muerta ampliada para evitar oscilaciones
+            if (Math.abs(dx.errorPresente) < 5 && Math.abs(dx.derivada) < 2) yHor = 0;
+            if (Math.abs(ds.errorPresente) < 5 && Math.abs(ds.derivada) < 2) yProf = 0;
 
             // Diagnóstico por ciclo
             dx.imprimir("Horizontal");
             ds.imprimir("Profundidad");
-            dy.imprimir("Vertical");
-            System.out.printf("→ yHor=%.2f yProf=%.2f yVert=%.2f\n", yHor, yProf, yVert);
+            System.out.printf("→ Salidas: yHor=%.3f yProf=%.3f\n", yHor, yProf);
 
-            // Aplicación de correcciones suaves
-            pA[0] += 0.05 * yHor;
-            pA[1] -= 0.08 * yProf;
-            pA[2] -= 0.10 * yProf;
-            pA[3] += 0.08 * yProf;
-            pA[4] += 0.05 * yVert;
+            // Aplicación de correcciones optimizadas
+            pA[0] += 0.045 * yHor;   // Hombro horizontal (giro izq/der)
+            pA[1] -= 0.075 * yProf;  // Hombro vertical (acercamiento)
+            pA[2] -= 0.095 * yProf;  // Brazo superior (acercamiento)
+            pA[3] += 0.075 * yProf;  // Codo (acercamiento)
 
             limitarRangos();
         } else {
-            System.out.println("No se detectó objeto.");
+            System.out.println("⚠ No se detectó objeto.");
         }
     }
 
