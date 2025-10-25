@@ -1,0 +1,11 @@
+Webots Proto Cache File version 1.4
+protoFileHash: e95906316851157fc3fb3d850a55b33d
+containsDevices: 1
+baseType: Solid
+slotType: 
+parameters: translation,rotation,name
+tags: 
+license:  Apache License 2.0.
+licenseUrl:  http://www.apache.org/licenses/LICENSE-2.0.
+documentationUrl: 
+info: Parallel\sgripper\send-effector\sfor\sthe\sTIAGo\srobot\sfrom\sPAL\sRobotics.\nCustomized\sfor\sthe\sElectronic\sEngineering\sProgram\sof\sCUN\sCorporation\sby\sDante\sSterpin.\n

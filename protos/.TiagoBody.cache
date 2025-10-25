@@ -1,0 +1,11 @@
+Webots Proto Cache File version 1.4
+protoFileHash: 0f29e782ba0fa71ecd9d2688b5cf8096
+containsDevices: 1
+baseType: Solid
+slotType: 
+parameters: translation,rotation,cameraSlot,rightArmSlot,frontArmSlot,leftArmSlot
+tags: 
+license:  Apache License 2.0.
+licenseUrl:  http://www.apache.org/licenses/LICENSE-2.0.
+documentationUrl: 
+info: Body\sof\sthe\sTIAGo\srobot\sfrom\sPAL\sRobotics.\nThe\sbody\scan\sbe\sextended\swith\sarms.\nCustomized\sfor\sthe\sElectronic\sEngineering\sProgram\sof\sCUN\sCorporation\sby\sDante\sSterpin.\n

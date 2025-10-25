@@ -1,0 +1,11 @@
+Webots Proto Cache File version 1.4
+protoFileHash: 297172ce0f4dd28dc5276e199cfd5b62
+containsDevices: 1
+baseType: Solid
+slotType: 
+parameters: translation,rotation,name,endEffectorSlot
+tags: 
+license:  Apache License 2.0.
+licenseUrl:  http://www.apache.org/licenses/LICENSE-2.0.
+documentationUrl: 
+info: Front\sarm\sfor\sthe\srobot\sTIAGo\sfrom\sPAL\sRobotics\s(Spain).\nIt\sis\sthe\srobot's\sfront\sarm\sthat\scan\sbe\sconnected\sto\sthe\sTIAGo\sbody.\nCustomized\sfor\sthe\sElectronic\sEngineering\sProgram\sof\sCUN\sCorporation\sby\sDante\sSterpin.\n
