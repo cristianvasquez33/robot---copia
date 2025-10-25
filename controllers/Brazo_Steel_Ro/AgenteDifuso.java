@@ -58,19 +58,25 @@ public class AgenteDifuso {
             double yProf = controladorProfundidad.inferir(errorP, derivadaP);
 
             // Zona muerta ampliada para evitar oscilaciones
-            if (Math.abs(dx.errorPresente) < 5 && Math.abs(dx.derivada) < 2) yHor = 0;
-            if (Math.abs(ds.errorPresente) < 5 && Math.abs(ds.derivada) < 2) yProf = 0;
+            if (Math.abs(dx.errorPresente) < 15 && Math.abs(dx.derivada) < 3) yHor = 0;
+            if (Math.abs(ds.errorPresente) < 10 && Math.abs(ds.derivada) < 3) yProf = 0;
 
             // Diagnóstico por ciclo
             dx.imprimir("Horizontal");
             ds.imprimir("Profundidad");
             System.out.printf("→ Salidas: yHor=%.3f yProf=%.3f\n", yHor, yProf);
 
+            // Mostrar estado de acercamiento
+            if (Math.abs(dx.errorPresente) < 15 && Math.abs(ds.errorPresente) < 10) {
+                System.out.println("✓ Objetivo alcanzado - Robot estabilizado");
+            }
+
             // Aplicación de correcciones optimizadas
             pA[0] += 0.045 * yHor;   // Hombro horizontal (giro izq/der)
-            pA[1] -= 0.075 * yProf;  // Hombro vertical (acercamiento)
-            pA[2] -= 0.095 * yProf;  // Brazo superior (acercamiento)
-            pA[3] += 0.075 * yProf;  // Codo (acercamiento)
+            pA[1] -= 0.080 * yProf;  // Hombro vertical (acercamiento)
+            pA[2] -= 0.100 * yProf;  // Brazo superior (acercamiento)
+            pA[3] += 0.100 * yProf;  // Codo (extensión)
+            pA[4] += 0.060 * yProf;  // Brazo inferior (extensión adicional)
 
             limitarRangos();
         } else {
