@@ -44,7 +44,7 @@ public class ControladorDifusoPD {
                 String etiqueta = fam[i][j];
                 double centroide = CENTROIDES.getOrDefault(etiqueta, 0.0);
                 if (w > 0) {
-                    ventana.mostrarRegla(String.format("Si x1 es %s y x2 es %s → y1 = %s (peso=%.2f)",
+                    ventana.mostrarRegla(String.format("Si x1 es %s y x2 es %s -> y1 = %s (peso=%.2f)",
                         ETIQUETAS[i], ETIQUETAS[j], etiqueta, w));
                 }
                 num += w * centroide;
