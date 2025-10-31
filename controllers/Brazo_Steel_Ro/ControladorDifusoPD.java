@@ -1,78 +1,60 @@
 import java.util.*;
+
 public class ControladorDifusoPD {
-    private trapesoidal[] conjuntosError;
-    private trapesoidal[] conjuntosDerivada;
-    private trapesoidal[] conjuntosSalida;
+
+    private static final String[] ETIQUETAS = {"NM", "NP", "Z", "PP", "PM"};
+    private static final Map<String, Double> CENTROIDES = Map.of(
+        "NB", -2.0, "NS", -1.0, "Z", 0.0, "PS", 1.0, "PB", 2.0
+    );
+
     private String[][] fam;
-    private double escala;
+    private trapesoidal[] conjuntos;
     private VentanaReglas ventana;
-    public ControladorDifusoPD(String[][] fam, double escala, VentanaReglas ventana) {
-        this.fam = fam;
+    private double escala;
+
+    public ControladorDifusoPD(String[][] matrizFAM, double escala, VentanaReglas ventana) {
+        this.fam = matrizFAM;
         this.escala = escala;
         this.ventana = ventana;
-        // Funciones de membresía para error
-        conjuntosError = new trapesoidal[] {
-            new trapesoidal(-3.2, -2.8, -2.0, -1.4), // NM
-            new trapesoidal(-2.5, -1.8, -1.0, -0.3), // NP
-            new trapesoidal(-1.2, -0.4,  0.4,  1.2), // Z
-            new trapesoidal( 0.3,  1.0,  1.8,  2.5), // PP
-            new trapesoidal( 1.4,  2.0,  2.8,  3.2)  // PM
-        };
-        // Funciones de membresía para derivada
-        conjuntosDerivada = new trapesoidal[] {
-            new trapesoidal(-2.5, -2.0, -1.5, -1.0), // NM
-            new trapesoidal(-1.2, -0.8, -0.3,  0.0), // NP
-            new trapesoidal(-0.4, -0.1,  0.1,  0.4), // Z
-            new trapesoidal( 0.0,  0.3,  0.8,  1.2), // PP
-            new trapesoidal( 1.0,  1.5,  2.0,  2.5)  // PM
-        };
-        // Funciones de membresía para salida
-        conjuntosSalida = new trapesoidal[] {
-            new trapesoidal(-2.5, -2.0, -1.5, -1.0), // NB
-            new trapesoidal(-1.2, -0.8, -0.3,  0.0), // NS
-            new trapesoidal(-0.4, -0.1,  0.1,  0.4), // Z
-            new trapesoidal( 0.0,  0.3,  0.8,  1.2), // PS
-            new trapesoidal( 1.0,  1.5,  2.0,  2.5)  // PB
+        conjuntos = new trapesoidal[] {
+            new trapesoidal(-2.8, -2.5, -1.8, -1.2), // NM
+            new trapesoidal(-2.5, -1.2, -0.9, -0.4), // NP
+            new trapesoidal(-1.8, -0.9, 0.1, 0.6),   // Z
+            new trapesoidal(-1.2, -0.4, 0.6, 1.8),   // PP
+            new trapesoidal( 0.4,  1.2,  1.8, 2.5)   // PM
         };
     }
-    public double escalar(double valor) {
-        return escala * valor;
-    }
-    public double inferir(double error, double derivada) {
-        double[] pertenenciaError = new double[5];
-        double[] pertenenciaDerivada = new double[5];
-        double[] salida = new double[5];
-        // Calcula grados de pertenencia
-        for (int i = 0; i < 5; i++) {
-            pertenenciaError[i] = conjuntosError[i].pertenencia(error);
-            pertenenciaDerivada[i] = conjuntosDerivada[i].pertenencia(derivada);
+
+    private double[] evaluar(double valor) {
+        double[] grados = new double[conjuntos.length];
+        for (int i = 0; i < conjuntos.length; i++) {
+            grados[i] = conjuntos[i].pertenencia(valor);
         }
-        // Aplica reglas FAM
-        for (int i = 0; i < 5; i++) {
-            for (int j = 0; j < 5; j++) {
-                double activacion = Math.min(pertenenciaError[i], pertenenciaDerivada[j]);
-                if (activacion > 0) {
-                    String etiqueta = fam[i][j];
-                    // ventana.activar(etiqueta); // Comentado: método no existe en VentanaReglas
-                    int indice = switch (etiqueta) {
-                        case "NB" -> 0;
-                        case "NS" -> 1;
-                        case "Z"  -> 2;
-                        case "PS" -> 3;
-                        default   -> 4; // PB
-                    };
-                    salida[indice] = Math.max(salida[indice], activacion);
+        return grados;
+    }
+
+    public double inferir(double entrada1, double entrada2) {
+        double[] m1 = evaluar(entrada1);
+        double[] m2 = evaluar(entrada2);
+        double num = 0.0, den = 0.0;
+
+        for (int i = 0; i < m1.length; i++) {
+            for (int j = 0; j < m2.length; j++) {
+                double w = Math.min(m1[i], m2[j]);
+                String etiqueta = fam[i][j];
+                double centroide = CENTROIDES.getOrDefault(etiqueta, 0.0);
+                if (w > 0) {
+                    ventana.mostrarRegla(String.format("Si x1 es %s y x2 es %s -> y1 = %s (peso=%.2f)",
+                        ETIQUETAS[i], ETIQUETAS[j], etiqueta, w));
                 }
+                num += w * centroide;
+                den += w;
             }
         }
-        // Defuzzificación por centroide
-        double[] centros = {-2.0, -1.0, 0.0, 1.0, 2.0}; // NB, NS, Z, PS, PB
-        double numerador = 0, denominador = 0;
-        for (int i = 0; i < 5; i++) {
-            numerador += salida[i] * centros[i];
-            denominador += salida[i];
-        }
-        double salidaFinal = (denominador == 0) ? 0 : numerador / denominador;
-        return Math.max(-2.0, Math.min(2.0, salidaFinal)); // límite suave
+        return (den == 0) ? 0.0 : num / den;
+    }
+
+    public double escalar(double valorReal) {
+        return valorReal * escala;
     }
 }
